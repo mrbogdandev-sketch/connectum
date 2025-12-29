@@ -1,0 +1,434 @@
+<!-- messenger_client.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мессенджер - Тест кнопки</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .messenger-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .status {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .status.connected {
+            color: #4CAF50;
+        }
+
+        .status.disconnected {
+            color: #f44336;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .button-test {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .test-button {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .test-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.5);
+        }
+
+        .test-button:active {
+            transform: translateY(1px);
+        }
+
+        .test-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-area {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            min-height: 150px;
+            border: 2px dashed #e0e0e0;
+            transition: all 0.5s ease;
+        }
+
+        .result-area.active {
+            background: #e8f5e9;
+            border-color: #4CAF50;
+            border-style: solid;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+
+        .result-text {
+            font-size: 20px;
+            text-align: center;
+            color: #333;
+            font-weight: 500;
+            line-height: 1.6;
+        }
+
+        .result-text.highlight {
+            color: #4CAF50;
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+        .server-info {
+            background: #f0f2f5;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .status-dot.connected {
+            background: #4CAF50;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .instructions {
+            background: #fff8e1;
+            border-left: 4px solid #ffb300;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 10px 10px 0;
+            font-size: 14px;
+            color: #5d4037;
+        }
+    </style>
+</head>
+<body>
+    <div class="messenger-container">
+        <div class="header">
+            <h1>Тест WebSocket Мессенджера</h1>
+            <div class="connection-status">
+                <div id="statusDot" class="status-dot"></div>
+                <span id="connectionStatus" class="status">Подключение...</span>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="button-test">
+                <button id="testButton" class="test-button" disabled>
+                    Нажми меня!
+                </button>
+            </div>
+            
+            <div id="resultArea" class="result-area">
+                <div id="resultText" class="result-text">
+                    Ожидание нажатия кнопки...
+                </div>
+            </div>
+            
+            <div class="server-info">
+                <div>Статус подключения: <span id="wsStatus">Не подключен</span></div>
+                <div>Последнее обновление: <span id="lastUpdate">—</span></div>
+            </div>
+            
+            <div class="instructions">
+                <strong>Инструкция:</strong> 
+                <p>1. Запустите Python сервер</p>
+                <p>2. Нажмите кнопку выше или нажмите Enter в консоли сервера</p>
+                <p>3. Текст "Кнопка нажата!" появится у всех подключенных клиентов</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class WebSocketMessenger {
+            constructor() {
+                // Настройки подключения
+                this.wsUrl = 'ws://localhost:8765';
+                this.socket = null;
+                this.clientId = this.generateClientId();
+                this.isConnected = false;
+                this.reconnectAttempts = 0;
+                this.maxReconnectAttempts = 5;
+                this.reconnectDelay = 3000;
+                
+                this.initialize();
+            }
+            
+            generateClientId() {
+                return 'client_' + Math.random().toString(36).substr(2, 9);
+            }
+            
+            initialize() {
+                this.connect();
+                this.bindEvents();
+            }
+            
+            connect() {
+                try {
+                    console.log(`Попытка подключения к ${this.wsUrl}`);
+                    this.socket = new WebSocket(this.wsUrl);
+                    
+                    this.socket.onopen = () => this.onOpen();
+                    this.socket.onmessage = (event) => this.onMessage(event);
+                    this.socket.onclose = () => this.onClose();
+                    this.socket.onerror = (error) => this.onError(error);
+                } catch (error) {
+                    console.error('Ошибка создания WebSocket:', error);
+                    this.handleReconnect();
+                }
+            }
+            
+            onOpen() {
+                console.log('WebSocket подключен');
+                this.isConnected = true;
+                this.reconnectAttempts = 0;
+                this.updateUIStatus(true);
+                
+                // Отправляем информацию о клиенте
+                this.send({
+                    type: 'client_connected',
+                    client_id: this.clientId,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Активируем кнопку
+                document.getElementById('testButton').disabled = false;
+            }
+            
+            onMessage(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log('Получено сообщение:', data);
+                    
+                    this.updateLastUpdate();
+                    
+                    // Обработка разных типов сообщений
+                    switch(data.type) {
+                        case 'button_pressed':
+                            this.showButtonPressed(data);
+                            break;
+                        case 'button_state':
+                            if (data.pressed) {
+                                this.showButtonPressed({
+                                    message: 'Кнопка уже была нажата',
+                                    source: data.source || 'system'
+                                });
+                            }
+                            break;
+                    }
+                } catch (error) {
+                    console.error('Ошибка обработки сообщения:', error);
+                }
+            }
+            
+            onClose() {
+                console.log('WebSocket отключен');
+                this.isConnected = false;
+                this.updateUIStatus(false);
+                document.getElementById('testButton').disabled = true;
+                this.handleReconnect();
+            }
+            
+            onError(error) {
+                console.error('WebSocket ошибка:', error);
+                this.updateUIStatus(false);
+            }
+            
+            handleReconnect() {
+                if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.reconnectAttempts++;
+                    console.log(`Попытка переподключения ${this.reconnectAttempts}/${this.maxReconnectAttempts} через ${this.reconnectDelay/1000} секунд...`);
+                    
+                    setTimeout(() => {
+                        this.connect();
+                    }, this.reconnectDelay);
+                } else {
+                    console.error('Максимальное количество попыток переподключения достигнуто');
+                    document.getElementById('connectionStatus').textContent = 'Ошибка подключения';
+                }
+            }
+            
+            send(data) {
+                if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                    this.socket.send(JSON.stringify(data));
+                    return true;
+                }
+                console.warn('WebSocket не подключен');
+                return false;
+            }
+            
+            showButtonPressed(data) {
+                const resultArea = document.getElementById('resultArea');
+                const resultText = document.getElementById('resultText');
+                
+                // Подсвечиваем область
+                resultArea.classList.add('active');
+                resultText.innerHTML = `
+                    <span class="highlight">${data.message || 'Кнопка нажата!'}</span><br>
+                    <small>Источник: ${data.source || 'клиент'}</small><br>
+                    <small>Время: ${new Date(data.timestamp || new Date()).toLocaleTimeString()}</small>
+                `;
+                
+                // Через 3 секунды убираем подсветку
+                setTimeout(() => {
+                    resultArea.classList.remove('active');
+                    resultText.innerHTML = 'Готов к следующему нажатию...';
+                }, 3000);
+            }
+            
+            updateUIStatus(connected) {
+                const statusDot = document.getElementById('statusDot');
+                const statusText = document.getElementById('connectionStatus');
+                const wsStatus = document.getElementById('wsStatus');
+                
+                if (connected) {
+                    statusDot.className = 'status-dot connected';
+                    statusText.textContent = 'Подключено к серверу';
+                    statusText.className = 'status connected';
+                    wsStatus.textContent = 'Активно';
+                    wsStatus.style.color = '#4CAF50';
+                } else {
+                    statusDot.className = 'status-dot';
+                    statusText.textContent = 'Отключено от сервера';
+                    statusText.className = 'status disconnected';
+                    wsStatus.textContent = 'Неактивно';
+                    wsStatus.style.color = '#f44336';
+                }
+            }
+            
+            updateLastUpdate() {
+                document.getElementById('lastUpdate').textContent = 
+                    new Date().toLocaleTimeString();
+            }
+            
+            bindEvents() {
+                // Обработка нажатия кнопки
+                document.getElementById('testButton').addEventListener('click', () => {
+                    if (!this.isConnected) {
+                        alert('Нет подключения к серверу!');
+                        return;
+                    }
+                    
+                    this.send({
+                        type: 'button_click',
+                        client_id: this.clientId,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    // Локальное отображение
+                    this.showButtonPressed({
+                        message: 'Вы нажали кнопку!',
+                        source: 'вы',
+                        timestamp: new Date().toISOString()
+                    });
+                });
+                
+                // Автоматическое переподключение при фокусе окна
+                window.addEventListener('focus', () => {
+                    if (!this.isConnected && this.reconnectAttempts < this.maxReconnectAttempts) {
+                        console.log('Окно в фокусе, пробуем переподключиться...');
+                        this.connect();
+                    }
+                });
+            }
+        }
+        
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            window.messenger = new WebSocketMessenger();
+            
+            // Информация для отладки
+            console.log('WebSocket мессенджер инициализирован');
+            console.log('Для теста:');
+            console.log('1. Нажмите кнопку на странице');
+            console.log('2. Или нажмите Enter в консоли сервера');
+        });
+    </script>
+</body>
+</html>
